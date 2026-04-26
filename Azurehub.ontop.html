@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NebulaObf — Roblox Lua Obfuscator</title>
+<meta name="description" content="Free Roblox Lua obfuscator powered by Nova API. Protect your scripts in seconds.">
+<meta property="og:title" content="NebulaObf — Roblox Lua Obfuscator">
+<meta property="og:description" content="Military-grade obfuscation for Roblox Lua scripts. Free, fast, secure. Built by FayintxCode.">
+<meta property="og:image" content="https://i.ibb.co.com/LXnrYg7C/discord-icon-svgrepo-com-1.jpg">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#b44dff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌌</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#03010a;--card:#110d1e;--rim:#1e1535;--rim2:#2a1d4a;--surface:#0d0818;
+  --neb1:#b44dff;--neb2:#5b8fff;--neb3:#ff4db3;--neb4:#48ffe0;
+  --text:#e2d8f5;--muted:#6b5c8a;--dim:#3d2f5c;--error:#ff4d6d;
+  --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-code:'Space Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden}
+
+/* ── LOADER ── */
+#loader{position:fixed;inset:0;background:var(--void);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;transition:opacity .7s ease,visibility .7s ease}
+#loader.gone{opacity:0;visibility:hidden;pointer-events:none}
+.ld-icon{font-size:60px;animation:ldPulse 1.6s ease-in-out infinite}
+@keyframes ldPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 14px rgba(180,77,255,.7))}50%{transform:scale(1.14);filter:drop-shadow(0 0 34px rgba(180,77,255,1))}}
+.ld-name{font-family:var(--font-head);font-size:32px;font-weight:800;letter-spacing:-1px;background:linear-gradient(90deg,var(--neb1),var(--neb2),var(--neb4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ld-track{width:220px;height:3px;background:var(--rim);border-radius:3px;overflow:hidden}
+.ld-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--neb1),var(--neb2),var(--neb4));background-size:200%;animation:ldShimmer 1.4s linear infinite;transition:width .35s ease}
+@keyframes ldShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.ld-sub{font-family:var(--font-code);font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+
+/* ── STARS ── */
+#starfield{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ── NEBULA BLOBS ── */
+.nb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;mix-blend-mode:screen}
+.nb1{width:500px;height:500px;background:radial-gradient(circle,rgba(180,77,255,.18),transparent 70%);top:-150px;left:-150px;animation:drift 14s ease-in-out infinite}
+.nb2{width:600px;height:600px;background:radial-gradient(circle,rgba(91,143,255,.14),transparent 70%);bottom:-200px;right:-200px;animation:drift 18s ease-in-out infinite reverse}
+.nb3{width:300px;height:300px;background:radial-gradient(circle,rgba(255,77,179,.12),transparent 70%);top:40%;left:60%;animation:drift 10s ease-in-out infinite}
+.nb4{width:250px;height:250px;background:radial-gradient(circle,rgba(72,255,224,.08),transparent 70%);top:20%;left:20%;animation:drift 12s ease-in-out infinite reverse}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-25px) scale(1.08)}66%{transform:translate(-20px,20px) scale(.94)}}
+
+/* ── PAGE ── */
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 20px 80px}
+
+/* ── TOPBAR ── */
+.topbar{width:100%;max-width:1000px;display:flex;align-items:center;justify-content:space-between;padding:28px 0 0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--neb1),var(--neb2));border-radius:10px;display:grid;place-items:center;font-size:18px;box-shadow:0 0 20px rgba(180,77,255,.4)}
+.brand-name{font-family:var(--font-head);font-size:18px;font-weight:800;letter-spacing:-.5px;background:linear-gradient(90deg,var(--neb1),var(--neb2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.vbadge{font-family:var(--font-code);font-size:9px;color:var(--muted);background:var(--card);border:1px solid var(--rim);padding:3px 8px;border-radius:20px;letter-spacing:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.dc-btn{display:flex;align-items:center;gap:7px;font-family:var(--font-code);font-size:10px;letter-spacing:1px;color:#c9b8ff;background:rgba(88,101,242,.12);border:1px solid rgba(88,101,242,.3);padding:6px 14px;border-radius:20px;text-decoration:none;transition:all .2s}
+.dc-btn:hover{background:rgba(88,101,242,.22);border-color:rgba(88,101,242,.6)}
+.dc-btn img{width:14px;height:14px;border-radius:3px;object-fit:contain}
+.status-pill{display:flex;align-items:center;gap:6px;font-family:var(--font-code);font-size:10px;color:var(--neb4);background:rgba(72,255,224,.06);border:1px solid rgba(72,255,224,.15);padding:6px 14px;border-radius:20px}
+.pulse-dot{width:6px;height:6px;background:var(--neb4);border-radius:50%;box-shadow:0 0 8px var(--neb4);animation:pdot 2s ease-in-out infinite}
+@keyframes pdot{0%,100%{opacity:1;box-shadow:0 0 8px var(--neb4)}50%{opacity:.3;box-shadow:none}}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:52px 0 40px;max-width:700px}
+.hero-label{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-code);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--neb1);margin-bottom:18px;opacity:0;animation:fadeUp .6s ease forwards .1s}
+.hl{display:inline-block;width:30px;height:1px;background:var(--neb1);opacity:.5}
+.hero-title{font-family:var(--font-head);font-size:clamp(38px,7vw,68px);font-weight:800;line-height:.95;letter-spacing:-3px;margin-bottom:16px;opacity:0;animation:fadeUp .7s ease forwards .2s}
+.t1{color:var(--text)}
+.t2{background:linear-gradient(135deg,var(--neb1) 0%,var(--neb2) 50%,var(--neb4) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:gradFlow 5s ease infinite}
+@keyframes gradFlow{0%,100%{background-position:0%}50%{background-position:100%}}
+.hero-sub{font-size:15px;color:var(--muted);line-height:1.6;opacity:0;animation:fadeUp .7s ease forwards .3s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STATS ── */
+.stats-strip{display:flex;gap:1px;background:var(--rim);border:1px solid var(--rim);border-radius:14px;overflow:hidden;margin-bottom:24px;width:100%;max-width:1000px;opacity:0;animation:fadeUp .7s ease forwards .4s}
+.s-item{flex:1;padding:14px 20px;background:var(--card);text-align:center}
+.s-val{font-family:var(--font-head);font-size:20px;font-weight:800;color:var(--neb1);line-height:1;margin-bottom:3px}
+.s-key{font-family:var(--font-code);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+
+/* ── MAIN CARD ── */
+.main-card{width:100%;max-width:1000px;background:var(--card);border:1px solid var(--rim);border-radius:20px;overflow:hidden;box-shadow:0 0 0 1px rgba(180,77,255,.05),0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);opacity:0;animation:fadeUp .7s ease forwards .5s}
+.card-top{display:flex;align-items:center;gap:16px;padding:16px 24px;background:rgba(0,0,0,.3);border-bottom:1px solid var(--rim)}
+.dots{display:flex;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot.r{background:#ff5f57}.dot.y{background:#ffbd2e}.dot.g{background:#28c840}
+.card-file{font-family:var(--font-code);font-size:11px;color:var(--muted);flex:1}
+.card-badge{font-family:var(--font-code);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;color:var(--neb4);background:rgba(72,255,224,.07);border:1px solid rgba(72,255,224,.15)}
+.card-body{padding:28px;display:flex;flex-direction:column;gap:22px}
+
+/* ── SEC HEAD ── */
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sec-lbl{font-family:var(--font-code);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);white-space:nowrap}
+.sec-line{flex:1;height:1px;background:var(--rim)}
+
+/* ── LEVELS ── */
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:500px){.levels{grid-template-columns:repeat(2,1fr)}}
+.lv-btn{position:relative;padding:12px 8px;background:var(--surface);border:1px solid var(--rim);border-radius:12px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;overflow:hidden}
+.lv-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s}
+.lv-btn[data-lv="light"]::before{background:linear-gradient(135deg,rgba(72,255,224,.07),transparent)}
+.lv-btn[data-lv="medium"]::before{background:linear-gradient(135deg,rgba(91,143,255,.07),transparent)}
+.lv-btn[data-lv="heavy"]::before{background:linear-gradient(135deg,rgba(180,77,255,.07),transparent)}
+.lv-btn[data-lv="premium"]::before{background:linear-gradient(135deg,rgba(255,77,179,.1),transparent)}
+.lv-btn:hover{border-color:var(--rim2)}.lv-btn:hover::before,.lv-btn.active::before{opacity:1}
+.lv-btn[data-lv="light"].active{border-color:rgba(72,255,224,.4);box-shadow:0 0 20px rgba(72,255,224,.12),inset 0 0 20px rgba(72,255,224,.04)}
+.lv-btn[data-lv="medium"].active{border-color:rgba(91,143,255,.4);box-shadow:0 0 20px rgba(91,143,255,.12),inset 0 0 20px rgba(91,143,255,.04)}
+.lv-btn[data-lv="heavy"].active{border-color:rgba(180,77,255,.4);box-shadow:0 0 20px rgba(180,77,255,.15),inset 0 0 20px rgba(180,77,255,.05)}
+.lv-btn[data-lv="premium"].active{border-color:rgba(255,77,179,.4);box-shadow:0 0 20px rgba(255,77,179,.15),inset 0 0 20px rgba(255,77,179,.05)}
+.lv-icon{font-size:18px}
+.lv-name{font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.5px}
+.lv-desc{font-size:9px;color:var(--muted);font-family:var(--font-code)}
+
+/* ── EDITORS ── */
+.editors-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.editors-grid{grid-template-columns:1fr}}
+.editor-col{display:flex;flex-direction:column;gap:8px}
+.ed-header{display:flex;align-items:center;justify-content:space-between}
+.ed-title{font-family:var(--font-code);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--muted)}
+.ed-actions{display:flex;gap:6px}
+.ed-act{font-family:var(--font-code);font-size:9px;letter-spacing:1px;color:var(--muted);background:none;border:1px solid var(--rim);border-radius:6px;padding:3px 9px;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.ed-act:hover{color:var(--neb1);border-color:rgba(180,77,255,.4);background:rgba(180,77,255,.05)}
+.ed-act.teal:hover{color:var(--neb4);border-color:rgba(72,255,224,.4);background:rgba(72,255,224,.05)}
+.ed-wrap{position:relative;border-radius:14px;border:1px solid var(--rim);background:rgba(0,0,0,.35);overflow:hidden;transition:border-color .2s}
+.ed-wrap:focus-within{border-color:rgba(180,77,255,.3);box-shadow:0 0 0 3px rgba(180,77,255,.06)}
+.ed-wrap.ow:focus-within{border-color:rgba(72,255,224,.3);box-shadow:0 0 0 3px rgba(72,255,224,.06)}
+.ed-gutter{position:absolute;top:0;left:0;bottom:0;width:36px;background:rgba(0,0,0,.2);border-right:1px solid var(--rim);padding-top:14px;pointer-events:none;overflow:hidden}
+.ed-gutter span{display:block;font-family:var(--font-code);font-size:10px;color:var(--dim);text-align:right;padding-right:8px;line-height:22.1px}
+textarea.ca{display:block;width:100%;height:260px;background:transparent;border:none;outline:none;padding:14px 14px 14px 50px;color:var(--text);font-family:var(--font-code);font-size:12px;line-height:22.1px;resize:vertical;tab-size:2;min-height:160px}
+textarea.ca::placeholder{color:var(--dim)}
+textarea.ca.out{color:var(--neb4)}
+textarea.ca.err{color:var(--error)}
+.ed-foot{display:flex;align-items:center;justify-content:space-between;padding:6px 10px 6px 50px;background:rgba(0,0,0,.15);border-top:1px solid var(--rim)}
+.ed-count{font-family:var(--font-code);font-size:9px;color:var(--dim)}
+
+/* ── DIFF BADGE ── */
+.diff-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-code);font-size:9px;padding:2px 8px;border-radius:6px;font-weight:700}
+.diff-up{color:var(--neb3);background:rgba(255,77,179,.08);border:1px solid rgba(255,77,179,.2)}
+.diff-dn{color:var(--neb4);background:rgba(72,255,224,.08);border:1px solid rgba(72,255,224,.2)}
+.diff-eq{color:var(--muted);background:var(--card);border:1px solid var(--rim)}
+
+/* ── STATUS ── */
+.status-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;border:1px solid var(--rim);background:rgba(0,0,0,.2);min-height:46px;transition:all .3s}
+.status-row.st-loading{border-color:rgba(180,77,255,.25);background:rgba(180,77,255,.04)}
+.status-row.st-success{border-color:rgba(72,255,224,.25);background:rgba(72,255,224,.04)}
+.status-row.st-error{border-color:rgba(255,77,109,.25);background:rgba(255,77,109,.04)}
+.st-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0}
+.st-text{font-family:var(--font-code);font-size:11px;color:var(--muted);flex:1}
+.status-row.st-loading .st-text{color:var(--neb1)}
+.status-row.st-success .st-text{color:var(--neb4)}
+.status-row.st-error .st-text{color:var(--error)}
+.st-time{font-family:var(--font-code);font-size:9px;color:var(--dim)}
+
+/* ── PROGRESS ── */
+.prog-track{height:3px;background:var(--rim);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--neb1),var(--neb2),var(--neb4));background-size:200%;transition:width .4s ease;animation:shimmer 2s linear infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── CTA ── */
+.cta-btn{width:100%;padding:18px;background:transparent;border:1px solid rgba(180,77,255,.3);border-radius:14px;cursor:pointer;position:relative;overflow:hidden;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:10px}
+.cta-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--neb1),var(--neb2),var(--neb3));opacity:.12;transition:opacity .25s}
+.cta-btn::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transition:left .5s ease}
+.cta-btn:hover{border-color:rgba(180,77,255,.6);transform:translateY(-2px)}.cta-btn:hover::before{opacity:.2}.cta-btn:hover::after{left:140%}
+.cta-btn:active{transform:translateY(0)}.cta-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.cta-label{font-family:var(--font-head);font-size:15px;font-weight:800;letter-spacing:1px;color:var(--text);position:relative;z-index:1;text-transform:uppercase}
+.cta-shortcut{font-family:var(--font-code);font-size:9px;color:var(--muted);position:relative;z-index:1}
+.spin-ring{display:none;width:16px;height:16px;border:2px solid rgba(180,77,255,.3);border-top-color:var(--neb1);border-radius:50%;animation:spin .5s linear infinite;position:relative;z-index:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cta-btn.loading .spin-ring{display:block}.cta-btn.loading .cta-label{opacity:.7}
+
+/* ── FEATURES ── */
+.feat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:500px){.feat-row{grid-template-columns:1fr}}
+.feat{padding:16px;background:rgba(0,0,0,.2);border:1px solid var(--rim);border-radius:12px;transition:border-color .2s,transform .2s}
+.feat:hover{border-color:var(--rim2);transform:translateY(-2px)}
+.feat-ico{font-size:22px;margin-bottom:8px}
+.feat-t{font-family:var(--font-head);font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.feat-d{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* ── HISTORY ── */
+.hist-section{width:100%;max-width:1000px;margin-top:20px;opacity:0;animation:fadeUp .7s ease forwards .7s}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.hist-title{font-family:var(--font-code);font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.hist-cnt{background:var(--rim2);color:var(--neb1);font-size:9px;padding:1px 7px;border-radius:10px;font-family:var(--font-code)}
+.hist-clear{font-family:var(--font-code);font-size:9px;color:var(--muted);background:none;border:1px solid var(--rim);padding:3px 10px;border-radius:6px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .15s}
+.hist-clear:hover{color:var(--error);border-color:rgba(255,77,109,.4)}
+.hist-list{display:flex;flex-direction:column;gap:8px}
+.hist-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--rim);border-radius:12px;cursor:pointer;transition:all .2s}
+.hist-item:hover{border-color:var(--rim2);background:rgba(180,77,255,.04)}
+.hist-lv{font-family:var(--font-code);font-size:9px;text-transform:uppercase;letter-spacing:1px;padding:2px 8px;border-radius:6px;border:1px solid;white-space:nowrap}
+.hist-lv.light{color:var(--neb4);border-color:rgba(72,255,224,.3);background:rgba(72,255,224,.06)}
+.hist-lv.medium{color:var(--neb2);border-color:rgba(91,143,255,.3);background:rgba(91,143,255,.06)}
+.hist-lv.heavy{color:var(--neb1);border-color:rgba(180,77,255,.3);background:rgba(180,77,255,.06)}
+.hist-lv.premium{color:var(--neb3);border-color:rgba(255,77,179,.3);background:rgba(255,77,179,.06)}
+.hist-meta{flex:1;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.hist-preview{font-family:var(--font-code);font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-info{font-family:var(--font-code);font-size:9px;color:var(--muted)}
+.hist-diff{font-family:var(--font-head);font-size:13px;font-weight:800;color:var(--neb3);white-space:nowrap;padding:0 8px}
+.hist-restore{font-family:var(--font-code);font-size:9px;color:var(--muted);background:none;border:1px solid var(--rim);padding:3px 10px;border-radius:6px;cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all .15s;white-space:nowrap}
+.hist-restore:hover{color:var(--neb4);border-color:rgba(72,255,224,.4)}
+.hist-empty{text-align:center;padding:28px;font-family:var(--font-code);font-size:11px;color:var(--dim)}
+
+/* ── HR ── */
+.hr{height:1px;background:linear-gradient(90deg,transparent,var(--rim),transparent)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;right:20px;z-index:9999;display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--card);border:1px solid var(--rim2);border-radius:12px;font-family:var(--font-code);font-size:11px;color:var(--text);box-shadow:0 8px 40px rgba(0,0,0,.6);transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:300px}
+.toast.on{transform:translateY(0);opacity:1}
+.toast.ok{border-color:rgba(72,255,224,.3)}.toast.no{border-color:rgba(255,77,109,.3)}
+.toast.ok .t-ico{color:var(--neb4)}.toast.no .t-ico{color:var(--error)}
+.t-ico{font-size:14px}
+
+/* ── FOOTER ── */
+footer{margin-top:40px;font-family:var(--font-code);font-size:10px;color:var(--dim);text-align:center;line-height:2}
+footer a{color:var(--neb1);text-decoration:none}
+footer a:hover{text-decoration:underline}
+footer a.dc{color:#7289da}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loader">
+  <div class="ld-icon">🌌</div>
+  <div class="ld-name">NebulaObf</div>
+  <div class="ld-track"><div class="ld-fill" id="ldFill"></div></div>
+  <div class="ld-sub" id="ldSub">Initializing...</div>
+</div>
+
+<canvas id="starfield"></canvas>
+<div class="nb nb1"></div><div class="nb nb2"></div>
+<div class="nb nb3"></div><div class="nb nb4"></div>
+
+<div class="page">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon">🌌</div>
+      <span class="brand-name">NebulaObf</span>
+      <span class="vbadge">v2.1</span>
+    </div>
+    <div class="topbar-right">
+      <a class="dc-btn" href="https://discord.gg/ZKXtUm5U7" target="_blank">
+        <img src="https://i.ibb.co.com/LXnrYg7C/discord-icon-svgrepo-com-1.jpg" alt="dc">
+        DISCORD
+      </a>
+      <div class="status-pill">
+        <div class="pulse-dot"></div>
+        API ONLINE
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label"><span class="hl"></span>Roblox Lua Obfuscator<span class="hl"></span></div>
+    <h1 class="hero-title">
+      <span class="t1">Protect Your</span><br>
+      <span class="t2">Lua Scripts</span>
+    </h1>
+    <p class="hero-sub">Military-grade obfuscation powered by Nova API.<br>Paste, obfuscate, deploy — in seconds.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-strip">
+    <div class="s-item"><div class="s-val" id="sCount">0</div><div class="s-key">Obfuscated</div></div>
+    <div class="s-item"><div class="s-val" id="sChars">0</div><div class="s-key">Input Chars</div></div>
+    <div class="s-item"><div class="s-val" id="sOutChars">—</div><div class="s-key">Output Chars</div></div>
+    <div class="s-item"><div class="s-val" id="sTime">—</div><div class="s-key">Last Time</div></div>
+    <div class="s-item"><div class="s-val" id="sDiff">—</div><div class="s-key">Size Diff</div></div>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="main-card">
+    <div class="card-top">
+      <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+      <span class="card-file">nebula-obf · obfuscation-studio.lua</span>
+      <span class="card-badge">nova api connected</span>
+    </div>
+    <div class="card-body">
+
+      <!-- LEVEL -->
+      <div>
+        <div class="sec-head"><span class="sec-lbl">Obfuscation Level</span><div class="sec-line"></div></div>
+        <div class="levels">
+          <button class="lv-btn" data-lv="light" onclick="setLevel('light')">
+            <span class="lv-icon">💫</span>
+            <span class="lv-name" style="color:var(--neb4)">Light</span>
+            <span class="lv-desc">Basic rename</span>
+          </button>
+          <button class="lv-btn active" data-lv="medium" onclick="setLevel('medium')">
+            <span class="lv-icon">🔷</span>
+            <span class="lv-name" style="color:var(--neb2)">Medium</span>
+            <span class="lv-desc">Encrypted vars</span>
+          </button>
+          <button class="lv-btn" data-lv="heavy" onclick="setLevel('heavy')">
+            <span class="lv-icon">🌀</span>
+            <span class="lv-name" style="color:var(--neb1)">Heavy</span>
+            <span class="lv-desc">Deep obfuscate</span>
+          </button>
+          <button class="lv-btn" data-lv="premium" onclick="setLevel('premium')">
+            <span class="lv-icon">✦</span>
+            <span class="lv-name" style="color:var(--neb3)">Premium</span>
+            <span class="lv-desc">Max protection</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- EDITORS -->
+      <div class="editors-grid">
+        <div class="editor-col">
+          <div class="ed-header">
+            <span class="ed-title">📄 Input — Source</span>
+            <div class="ed-actions">
+              <button class="ed-act" onclick="loadExample()">Example</button>
+              <button class="ed-act" onclick="clearAll()">Clear</button>
+            </div>
+          </div>
+          <div class="ed-wrap">
+            <div class="ed-gutter" id="inGutter"></div>
+            <textarea class="ca" id="inputCode" placeholder="-- Paste your Roblox Lua here..." oninput="onInput()" spellcheck="false"></textarea>
+            <div class="ed-foot">
+              <span class="ed-count" id="inCount">0 chars · 0 lines</span>
+              <span style="font-family:var(--font-code);font-size:9px;color:var(--muted)">Luau</span>
+            </div>
+          </div>
+        </div>
+        <div class="editor-col">
+          <div class="ed-header">
+            <span class="ed-title">🔒 Output — Obfuscated</span>
+            <div class="ed-actions">
+              <button class="ed-act teal" onclick="copyOut()">Copy</button>
+              <button class="ed-act teal" onclick="dlOut()">Download</button>
+            </div>
+          </div>
+          <div class="ed-wrap ow">
+            <div class="ed-gutter" id="outGutter"></div>
+            <textarea class="ca out" id="outputCode" placeholder="-- Output will appear here..." readonly spellcheck="false"></textarea>
+            <div class="ed-foot">
+              <span class="ed-count" id="outCount">— chars</span>
+              <span id="outDiffBadge"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS -->
+      <div>
+        <div class="status-row" id="statusRow">
+          <span class="st-icon" id="stIcon">◎</span>
+          <span class="st-text" id="stText">Ready · paste script & click Obfuscate</span>
+          <span class="st-time" id="stTime"></span>
+        </div>
+        <div style="height:8px"></div>
+        <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+      </div>
+
+      <!-- CTA -->
+      <button class="cta-btn" id="ctaBtn" onclick="run()">
+        <div class="spin-ring"></div>
+        <span class="cta-label">⚡ Obfuscate</span>
+        <span class="cta-shortcut">Ctrl+Enter</span>
+      </button>
+
+      <div class="hr"></div>
+
+      <!-- FEATURES -->
+      <div class="feat-row">
+        <div class="feat"><div class="feat-ico">🛡️</div><div class="feat-t">Anti-Decompile</div><div class="feat-d">Resistant to common Roblox decompilers and exploits</div></div>
+        <div class="feat"><div class="feat-ico">⚡</div><div class="feat-t">Zero Lag</div><div class="feat-d">Obfuscated output runs at full performance</div></div>
+        <div class="feat"><div class="feat-ico">🌌</div><div class="feat-t">Nebula Engine</div><div class="feat-d">Powered by Nova API — free tier available</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="hist-section">
+    <div class="hist-header">
+      <div class="hist-title">
+        📜 Obfuscation History
+        <span class="hist-cnt" id="histCnt">0</span>
+      </div>
+      <button class="hist-clear" onclick="clearHistory()">Clear All</button>
+    </div>
+    <div class="hist-list" id="histList">
+      <div class="hist-empty">No obfuscations yet — run one to see history here</div>
+    </div>
+  </div>
+
+  <footer>
+    NebulaObf · Powered by <a href="#">Nova API</a> · Built by <a href="#">FayintxCode</a><br>
+    <a class="dc" href="https://discord.gg/ZKXtUm5U7" target="_blank">Join our Discord</a> · All scripts processed securely. No logs stored.
+  </footer>
+
+</div>
+
+<div class="toast" id="toast">
+  <span class="t-ico" id="tIco">✦</span>
+  <span id="tTxt">Done!</span>
+</div>
+
+<script>
+// ── LOADER ──
+const STEPS = ['Initializing...','Loading Nova API...','Spinning up nebula...','Almost ready...','Done!'];
+let ldIdx = 0, ldPct = 0;
+const ldFill = document.getElementById('ldFill');
+const ldSub  = document.getElementById('ldSub');
+const ldTimer = setInterval(() => {
+  ldPct = Math.min(ldPct + 100/STEPS.length, 100);
+  ldFill.style.width = ldPct + '%';
+  ldSub.textContent = STEPS[ldIdx] || 'Done!';
+  ldIdx++;
+  if (ldIdx >= STEPS.length) {
+    clearInterval(ldTimer);
+    setTimeout(() => document.getElementById('loader').classList.add('gone'), 500);
+  }
+}, 340);
+
+// ── STARS ──
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function resizeCanvas(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+function makeStars(n){ stars=[]; for(let i=0;i<n;i++) stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.2,a:Math.random(),sp:.002+Math.random()*.003}); }
+function drawStars(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  stars.forEach(s=>{ s.a+=s.sp; const a=(Math.sin(s.a)+1)/2*.7+.1; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle=`rgba(200,180,255,${a})`; ctx.fill(); });
+  requestAnimationFrame(drawStars);
+}
+resizeCanvas(); makeStars(220); drawStars();
+window.addEventListener('resize',()=>{ resizeCanvas(); makeStars(220); });
+
+// ── GUTTER ──
+function updateGutter(taId, gId){
+  const ta=document.getElementById(taId), g=document.getElementById(gId);
+  if(!ta||!g) return;
+  const n=Math.max(ta.value.split('\n').length+3,12);
+  g.innerHTML='';
+  for(let i=1;i<=n;i++){ const s=document.createElement('span'); s.textContent=i; g.appendChild(s); }
+}
+
+// ── STATE ──
+const API_URL = 'https://nova-obf.netlify.app/.netlify/functions/obf';
+const API_KEY = 'nova_f6fe7qtco9wzdj8cd2usxq';
+let level = 'medium', obfCount = 0;
+let hist = [];
+try { hist = JSON.parse(localStorage.getItem('nebula_hist') || '[]'); } catch(e){}
+
+function setLevel(lv){
+  level = lv;
+  document.querySelectorAll('.lv-btn').forEach(b => b.classList.toggle('active', b.dataset.lv===lv));
+}
+
+function onInput(){
+  const v = document.getElementById('inputCode').value;
+  document.getElementById('inCount').textContent = v.length.toLocaleString() + ' chars · ' + v.split('\n').length + ' lines';
+  document.getElementById('sChars').textContent = v.length.toLocaleString();
+  updateGutter('inputCode','inGutter');
+}
+
+function clearAll(){
+  document.getElementById('inputCode').value='';
+  document.getElementById('outputCode').value='';
+  document.getElementById('outputCode').className='ca out';
+  document.getElementById('inCount').textContent='0 chars · 0 lines';
+  document.getElementById('outCount').textContent='— chars';
+  document.getElementById('outDiffBadge').innerHTML='';
+  document.getElementById('sChars').textContent='0';
+  document.getElementById('sOutChars').textContent='—';
+  document.getElementById('sDiff').textContent='—';
+  setStatus('','◎','Ready · paste script & click Obfuscate','');
+  setProgress(0);
+  updateGutter('inputCode','inGutter');
+  updateGutter('outputCode','outGutter');
+}
+
+function loadExample(){
+  document.getElementById('inputCode').value=
+`local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+local function teleport(pos)
+  hrp.CFrame = CFrame.new(pos)
+end
+
+RunService.Heartbeat:Connect(function()
+  print("NebulaObf Active")
+end)`;
+  onInput();
+}
+
+function copyOut(){
+  const v=document.getElementById('outputCode').value;
+  if(!v||v.startsWith('-- Error')||v.startsWith('-- Output')){ toast('Nothing to copy yet!',false); return; }
+  navigator.clipboard.writeText(v).then(()=>toast('Copied to clipboard!',true)).catch(()=>{ document.getElementById('outputCode').select(); document.execCommand('copy'); toast('Copied!',true); });
+}
+
+function dlOut(){
+  const v=document.getElementById('outputCode').value;
+  if(!v||v.startsWith('-- Error')||v.startsWith('-- Output')){ toast('Nothing to download!',false); return; }
+  const b=new Blob([v],{type:'text/plain'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='nebula_'+Date.now()+'.lua'; a.click(); URL.revokeObjectURL(a.href);
+  toast('Download started!',true);
+}
+
+function setStatus(cls,icon,text,time){
+  document.getElementById('statusRow').className='status-row'+(cls?' '+cls:'');
+  document.getElementById('stIcon').textContent=icon;
+  document.getElementById('stText').textContent=text;
+  document.getElementById('stTime').textContent=time||'';
+}
+function setProgress(p){ document.getElementById('prog').style.width=p+'%'; }
+
+function showDiff(inLen, outLen){
+  const diff=outLen-inLen, pct=inLen?((diff/inLen)*100).toFixed(0):0;
+  const cls=diff>0?'diff-up':diff<0?'diff-dn':'diff-eq';
+  const lbl=diff>0?`▲ +${pct}%`:diff<0?`▼ ${pct}%`:'= same';
+  document.getElementById('outDiffBadge').innerHTML=`<span class="diff-badge ${cls}">${lbl}</span>`;
+  document.getElementById('sDiff').textContent=(diff>0?'+':'')+pct+'%';
+}
+
+// ── HISTORY ──
+function saveHist(entry){
+  hist.unshift(entry);
+  if(hist.length>10) hist=hist.slice(0,10);
+  try{ localStorage.setItem('nebula_hist',JSON.stringify(hist)); }catch(e){}
+  renderHist();
+}
+
+function clearHistory(){
+  hist=[]; try{ localStorage.removeItem('nebula_hist'); }catch(e){}
+  renderHist(); toast('History cleared',true);
+}
+
+function restoreHist(i){
+  const h=hist[i]; if(!h) return;
+  document.getElementById('inputCode').value=h.input;
+  document.getElementById('outputCode').value=h.output;
+  document.getElementById('outputCode').className='ca out';
+  onInput(); updateGutter('outputCode','outGutter');
+  document.getElementById('outCount').textContent=h.output.length.toLocaleString()+' chars';
+  showDiff(h.input.length,h.output.length);
+  toast('Restored from history!',true);
+}
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderHist(){
+  const list=document.getElementById('histList');
+  document.getElementById('histCnt').textContent=hist.length;
+  if(!hist.length){ list.innerHTML='<div class="hist-empty">No obfuscations yet — run one to see history here</div>'; return; }
+  list.innerHTML=hist.map((h,i)=>{
+    const diff=h.output.length-h.input.length;
+    const pct=h.input.length?((diff/h.input.length)*100).toFixed(0):0;
+    const ds=(diff>=0?'+':'')+pct+'%';
+    return `<div class="hist-item">
+      <span class="hist-lv ${h.level}">${h.level}</span>
+      <div class="hist-meta">
+        <div class="hist-preview">${esc(h.input.trim().split('\n')[0].slice(0,60))}</div>
+        <div class="hist-info">${h.input.length.toLocaleString()} → ${h.output.length.toLocaleString()} chars · ${h.time} · ${h.elapsed}</div>
+      </div>
+      <span class="hist-diff">${ds}</span>
+      <button class="hist-restore" onclick="restoreHist(${i})">Restore</button>
+    </div>`;
+  }).join('');
+}
+
+// ── MAIN ──
+async function run(){
+  const code=document.getElementById('inputCode').value.trim();
+  if(!code){ toast('Paste your Lua script first!',false); return; }
+  const btn=document.getElementById('ctaBtn');
+  btn.disabled=true; btn.classList.add('loading');
+  document.getElementById('outputCode').value='';
+  document.getElementById('outputCode').className='ca out';
+  document.getElementById('outDiffBadge').innerHTML='';
+  setProgress(15); setStatus('st-loading','⟳','Connecting to Nova API...','');
+  const t0=Date.now();
+  try {
+    setProgress(35);
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':API_KEY},body:JSON.stringify({code,level})});
+    setProgress(65);
+    const data=await res.json();
+    setProgress(85);
+    if(!res.ok) throw new Error(data.error||data.message||`HTTP ${res.status}`);
+    if(!data.success||!data.code) throw new Error(data.error||'API returned no code');
+    const elapsed=((Date.now()-t0)/1000).toFixed(2)+'s';
+    const out=data.code;
+    document.getElementById('outputCode').value=out;
+    document.getElementById('outCount').textContent=out.length.toLocaleString()+' chars';
+    updateGutter('outputCode','outGutter');
+    showDiff(code.length,out.length);
+    obfCount++;
+    document.getElementById('sCount').textContent=obfCount;
+    document.getElementById('sOutChars').textContent=out.length.toLocaleString();
+    document.getElementById('sTime').textContent=elapsed;
+    saveHist({input:code,output:out,level,elapsed,time:new Date().toLocaleTimeString()});
+    setProgress(100); setStatus('st-success','✦',`Done! Level: ${data.level||level} · ${out.length.toLocaleString()} chars · ${elapsed}`,'');
+    toast('Obfuscated successfully!',true);
+    setTimeout(()=>setProgress(0),1800);
+  } catch(err){
+    document.getElementById('outputCode').value='-- Error: '+err.message;
+    document.getElementById('outputCode').className='ca err';
+    setProgress(0); setStatus('st-error','✗','Error: '+err.message,'');
+    toast('Error: '+err.message,false);
+  }
+  btn.disabled=false; btn.classList.remove('loading');
+}
+
+function toast(msg,ok){
+  const el=document.getElementById('toast');
+  el.className='toast '+(ok?'ok':'no');
+  document.getElementById('tIco').textContent=ok?'✦':'✗';
+  document.getElementById('tTxt').textContent=msg;
+  el.classList.add('on'); clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('on'),3000);
+}
+
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run();} });
+
+updateGutter('inputCode','inGutter');
+updateGutter('outputCode','outGutter');
+renderHist();
+</script>
+</body>
+</html>
